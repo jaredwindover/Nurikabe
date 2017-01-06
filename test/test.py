@@ -50,11 +50,11 @@ class Test(unittest.TestCase):
           "      ████████      ████",
           "████████    ██████████  "], False)
     ])
-    def test_something_else(self, board, result):
-        self.assertEqual(
-            nurikabe.test(
-                nurikabe.parse(board, '██', '  ',)),
-            result)
+    def test_something_else(self, str_board, result):
+            board = nurikabe.Board.from_str(str_board, '██', '  ')
+            self.assertEqual(
+                board.is_valid(),
+                result)
 
     @vals([
         (["████",
@@ -101,10 +101,10 @@ class Test(unittest.TestCase):
           "      ████████      ████",
           "████████    ██████████  "], True)
     ])
-    def test_disconnect(self, board, result):
+    def test_disconnect(self, str_board, result):
+        board = nurikabe.Board.from_str(str_board, '██', '  ')
         self.assertEqual(
-            nurikabe.is_disconnected(
-                nurikabe.parse(board, '██', '  ',)),
+            board.is_disconnected(),
             result)
 
     @vals([
@@ -150,18 +150,32 @@ class Test(unittest.TestCase):
           "()##()"], '##', '()',
          [[0, 1, 0],
           [1, 0, 1],
+          [0, 1, 0]]),
+
+        (["0#0",
+          "#0#",
+          "0#0"], '#', '0',
+         [[0, 1, 0],
+          [1, 0, 1],
+          [0, 1, 0]]),
+
+        (["(_)(@)(_)",
+          "(@)(_)(@)",
+          "(_)(@)(_)"], '(@)', '(_)',
+         [[0, 1, 0],
+          [1, 0, 1],
           [0, 1, 0]])
     ])
-    def test_parse(self,
-                   board,
-                   block_symbol,
-                   space_symbol,
-                   result):
+    def test_board_from_str(self,
+                            str_board,
+                            block_symbol,
+                            space_symbol,
+                            result):
         self.assertEqual(
-            nurikabe.parse(
-                board,
+            nurikabe.Board.from_str(
+                str_board,
                 block_symbol,
-                space_symbol),
+                space_symbol).cells,
             result)
 
     @vals([
@@ -185,14 +199,12 @@ class Test(unittest.TestCase):
           "()##()"])
     ])
     def test_prettyprint(self,
-                         board,
+                         cells,
                          block_symbol,
                          space_symbol,
                          result):
         self.assertEqual(
-            nurikabe.pretty_print(board,
-                                  block_symbol,
-                                  space_symbol),
+            nurikabe.Board(cells).pretty_print(block_symbol, space_symbol),
             result)
 
     @vals([
@@ -249,12 +261,10 @@ class Test(unittest.TestCase):
           (10, 8), (10, 9), (9, 9), (8, 9),
           (7, 9), (6, 9)})
     ])
-    def test_get_connected_component(self, board, cell, result):
+    def test_get_connected_component(self, str_board, cell, result):
+        board = nurikabe.Board.from_str(str_board, '██', '  ')
         self.assertEqual(
-            nurikabe.get_connected_component(
-                nurikabe.parse(board, '██', '  '),
-                cell
-            ),
+            board.get_connected_component(cell),
             result
         )
 
@@ -279,15 +289,25 @@ class Test(unittest.TestCase):
           "  ██████    ██  ██  ██  ",
           "      ████████      ████",
           "████████    ██████████  "],
-         {
-             1: 8,
-             2: 9,
-             3: 4,
-             4: 3,
-             10: 1
-         })
+         {1: 8,
+          2: 9,
+          3: 4,
+          4: 3,
+          10: 1})
     ])
-    def test_island_sizes(self, board, result):
+    def test_island_sizes(self, str_board, result):
+        board = nurikabe.Board.from_str(str_board, '██', '  ')
         self.assertEqual(
-            nurikabe.island_sizes(nurikabe.parse(board, '██', '  ')),
+            board.island_sizes(),
+            result)
+
+    @vals([
+        (["██"], [(0, 0)]),
+        (["████",
+          "████"], [(0, 0), (1, 0), (0, 1), (1, 1)]),
+    ])
+    def test_board_cell_iterator(self, str_board, result):
+        board = nurikabe.Board.from_str(str_board, '██', '  ')
+        self.assertEqual(
+            list(board.cell_iterator()),
             result)
